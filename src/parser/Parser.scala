@@ -21,6 +21,12 @@ object Parser {
 
     type Result[A] = Option[(List[Char], A)]
 
+    def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
+        input => for {
+            (input_, xs) <- parser(input)
+            if xs.nonEmpty
+        } yield (input_, xs)
+
 
     case class CharParser(char: Char) extends Parser[Char] {
 
@@ -50,6 +56,16 @@ object Parser {
                         parseString(str.tail, rest, chars :+ ch)
                     case _ => None
                 }
+
+    }
+
+
+    case class SpanParser(pred: Char => Boolean) extends Parser[List[Char]] {
+
+        override def apply(input: List[Char]): Result[List[Char]] = {
+            val (token, rest) = input.span(pred)
+            Some(rest, token)
+        }
 
     }
 }
