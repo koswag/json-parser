@@ -1,9 +1,13 @@
 package parser
 
-import parser.JsonTypes.{JsonBool, JsonNull, JsonNumber, JsonValue}
-import parser.Parser.{Result, SpanParser, StringParser, nonEmpty}
+import parser.JsonParser.STRING_LITERAL
+import parser.JsonTypes.{JsonBool, JsonNull, JsonNumber, JsonString, JsonValue}
+import parser.Parser.{CharParser, Result, SpanParser, StringParser, nonEmpty}
 
 object JsonParser {
+
+    private val QUOTE = CharParser('"')
+    private val STRING_LITERAL = SpanParser(_ != '"') surroundedBy QUOTE
 
     case class KeywordParser(keyword: String) extends Parser[JsonValue] {
 
@@ -56,6 +60,19 @@ object JsonParser {
             } yield {
                 val number = token.mkString.toInt
                 (rest, JsonNumber(number))
+            }
+
+    }
+
+
+    object JsonStringParser extends Parser[JsonValue] {
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, token) <- STRING_LITERAL(input)
+            } yield {
+                val str = token.mkString("")
+                (rest, JsonString(str))
             }
 
     }
