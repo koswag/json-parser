@@ -7,12 +7,27 @@ import scala.annotation.tailrec
 
 trait Parser[A] extends (List[Char] => Result[A]) {
 
+    def *>[B](other: Parser[B]): Parser[B] =
+        input => for {
+            (rest, _) <- apply(input)
+            result <- other(rest)
+        } yield result
+
+    def <*[B](other: Parser[B]): Parser[A] =
+        input => for {
+            (rest, res) <- apply(input)
+            (rest_, _) <- other(rest)
+        } yield (rest_, res)
+
     def or(other: => Parser[A]): Parser[A] =
         input => {
             val res = apply(input)
             if (res.isDefined) res
             else other(input)
         }
+
+    def surroundedBy[B](parser: Parser[B]): Parser[A] =
+        parser *> this <* parser
 
 }
 
