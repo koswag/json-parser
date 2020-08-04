@@ -5,7 +5,16 @@ import parser.Parser.Result
 import scala.annotation.tailrec
 
 
-trait Parser[A] extends (List[Char] => Result[A])
+trait Parser[A] extends (List[Char] => Result[A]) {
+
+    def or(other: => Parser[A]): Parser[A] =
+        input => {
+            val res = apply(input)
+            if (res.isDefined) res
+            else other(input)
+        }
+
+}
 
 
 object Parser {
