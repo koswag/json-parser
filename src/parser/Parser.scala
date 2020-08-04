@@ -69,6 +69,9 @@ object Parser {
             if xs.nonEmpty
         } yield (input_, xs)
 
+    def empty[A]: Parser[List[A]] =
+        input => Some(input, List.empty)
+
 
     case class CharParser(char: Char) extends Parser[Char] {
 
