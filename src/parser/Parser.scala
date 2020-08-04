@@ -44,7 +44,7 @@ trait Parser[A] extends (List[Char] => Result[A]) {
                 } else None
         }
 
-    def sepBy[B](sep: Parser[B]): Parser[List[A]] =
+    def separatedBy[B](sep: Parser[B]): Parser[List[A]] =
         input => {
             val parseElement: Parser[A] =
                 sep *> this

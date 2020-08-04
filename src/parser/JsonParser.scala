@@ -5,6 +5,12 @@ import parser.Parser._
 
 object JsonParser {
 
+    def apply(input: String): Result[JsonValue] = {
+        val input_ = input.toList
+        JSON_VALUE(input_)
+    }
+
+
     private val COMMA = CharParser(',')
     private val QUOTE = CharParser('"')
     private val COLON = CharParser(':')
@@ -26,7 +32,9 @@ object JsonParser {
             or JsonNumberParser
             or JsonStringParser
             or JsonArrayParser
+            or JsonObjectParser
         )
+
 
     case class KeywordParser(keyword: String) extends Parser[JsonValue] {
 
@@ -49,8 +57,10 @@ object JsonParser {
 
 
     object JsonNullParser extends Parser[JsonValue] {
+
         override def apply(input: List[Char]): Result[JsonValue] =
             KeywordParser("null")(input)
+
     }
 
 
@@ -108,7 +118,7 @@ object JsonParser {
             }
 
         val parseElements: Parser[List[JsonValue]] = {
-            val elements = (JSON_VALUE sepBy LIST_SEPARATOR
+            val elements = (JSON_VALUE separatedBy LIST_SEPARATOR
                 or Parser.empty)
             LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
         }
@@ -143,7 +153,7 @@ object JsonParser {
 
         val parseObject: Parser[List[Pair]] =
             SPACES *> LEFT_BRACE *> SPACES *>
-                (pair.sepBy(LIST_SEPARATOR) or
+                (pair separatedBy LIST_SEPARATOR or
                     Parser.empty) <*
                 SPACES <* RIGHT_BRACE <* SPACES
 
