@@ -1,7 +1,7 @@
 package parser
 
-import parser.JsonTypes.{JsonBool, JsonNull, JsonValue}
-import parser.Parser.{Result, StringParser}
+import parser.JsonTypes.{JsonBool, JsonNull, JsonNumber, JsonValue}
+import parser.Parser.{Result, SpanParser, StringParser, nonEmpty}
 
 object JsonParser {
 
@@ -41,6 +41,22 @@ object JsonParser {
 
         private val falseParser: Parser[JsonValue] =
             KeywordParser("false")
+
+    }
+
+
+    object JsonNumberParser extends Parser[JsonValue] {
+
+        private val numParser =
+            nonEmpty(SpanParser(_.isDigit))
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, token) <- numParser(input)
+            } yield {
+                val number = token.mkString.toInt
+                (rest, JsonNumber(number))
+            }
 
     }
 
