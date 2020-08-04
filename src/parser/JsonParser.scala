@@ -1,16 +1,19 @@
 package parser
 
-import parser.JsonParser.{JSON_VALUE, LEFT_SQ_BRACKET, STRING_LITERAL}
-import parser.JsonTypes.{JsonArray, JsonBool, JsonNull, JsonNumber, JsonString, JsonValue}
-import parser.Parser.{CharParser, Result, SpanParser, StringParser, nonEmpty}
+import parser.JsonTypes._
+import parser.Parser._
 
 object JsonParser {
 
     private val COMMA = CharParser(',')
     private val QUOTE = CharParser('"')
+    private val COLON = CharParser(':')
 
     private val LEFT_SQ_BRACKET = CharParser('[')
     private val RIGHT_SQ_BRACKET = CharParser(']')
+
+    private val LEFT_BRACE = CharParser('{')
+    private val RIGHT_BRACE = CharParser('}')
 
     private val SPACES = SpanParser(_.isWhitespace)
     private val LIST_SEPARATOR = COMMA surroundedBy SPACES
@@ -109,6 +112,40 @@ object JsonParser {
                 or Parser.empty)
             LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
         }
+
+    }
+
+
+    object JsonObjectParser extends Parser[JsonValue] {
+
+        type Pair = (List[Char], JsonValue)
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, pairs) <- parseObject(input)
+            } yield (rest, JsonObject(pairs))
+
+        val pair: Parser[Pair] =
+            extractPair(
+                STRING_LITERAL,
+                COLON surroundedBy SPACES,
+                JSON_VALUE
+            )
+
+        def extractPair(keyParser: Parser[List[Char]],
+                        sepParser: Parser[Char],
+                        valParser: Parser[JsonValue]): Parser[Pair] =
+            input => for {
+                (rest, k) <- keyParser(input)
+                (rest_, _) <- sepParser(rest)
+                (rest__, v) <- valParser(rest_)
+            } yield (rest__, k -> v)
+
+        val parseObject: Parser[List[Pair]] =
+            SPACES *> LEFT_BRACE *> SPACES *>
+                (pair.sepBy(LIST_SEPARATOR) or
+                    Parser.empty) <*
+                SPACES <* RIGHT_BRACE <* SPACES
 
     }
 
