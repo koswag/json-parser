@@ -1,13 +1,29 @@
 package parser
 
-import parser.JsonParser.STRING_LITERAL
-import parser.JsonTypes.{JsonBool, JsonNull, JsonNumber, JsonString, JsonValue}
+import parser.JsonParser.{JSON_VALUE, LEFT_SQ_BRACKET, STRING_LITERAL}
+import parser.JsonTypes.{JsonArray, JsonBool, JsonNull, JsonNumber, JsonString, JsonValue}
 import parser.Parser.{CharParser, Result, SpanParser, StringParser, nonEmpty}
 
 object JsonParser {
 
+    private val COMMA = CharParser(',')
     private val QUOTE = CharParser('"')
+
+    private val LEFT_SQ_BRACKET = CharParser('[')
+    private val RIGHT_SQ_BRACKET = CharParser(']')
+
+    private val SPACES = SpanParser(_.isWhitespace)
+    private val LIST_SEPARATOR = COMMA surroundedBy SPACES
+
     private val STRING_LITERAL = SpanParser(_ != '"') surroundedBy QUOTE
+
+    private val JSON_VALUE = (
+        JsonNullParser
+            or JsonBoolParser
+            or JsonNumberParser
+            or JsonStringParser
+            or JsonArrayParser
+        )
 
     case class KeywordParser(keyword: String) extends Parser[JsonValue] {
 
@@ -74,6 +90,25 @@ object JsonParser {
                 val str = token.mkString("")
                 (rest, JsonString(str))
             }
+
+    }
+
+
+    object JsonArrayParser extends Parser[JsonValue] {
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, tokens) <- parseElements(input)
+            } yield {
+                val elements = JsonArray(tokens)
+                (rest, elements)
+            }
+
+        val parseElements: Parser[List[JsonValue]] = {
+            val elements = (JSON_VALUE sepBy LIST_SEPARATOR
+                or Parser.empty)
+            LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
+        }
 
     }
 
