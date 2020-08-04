@@ -29,6 +29,33 @@ trait Parser[A] extends (List[Char] => Result[A]) {
     def surroundedBy[B](parser: Parser[B]): Parser[A] =
         parser *> this <* parser
 
+    @tailrec
+    final def many(input: List[Char],
+                   elements: List[A] = List()): Result[List[A]] =
+        apply(input) match {
+            case Some((rest, element)) =>
+                val newElements = elements :+ element
+                if (rest.nonEmpty)
+                    many(rest, newElements)
+                else Some(rest, newElements)
+            case None =>
+                if (elements.nonEmpty) {
+                    Some(input, elements)
+                } else None
+        }
+
+    def sepBy[B](sep: Parser[B]): Parser[List[A]] =
+        input => {
+            val parseElement: Parser[A] =
+                sep *> this
+
+            apply(input) match {
+                case Some((rest, elem)) =>
+                    parseElement.many(rest, List(elem))
+                case _ => None
+            }
+        }
+
 }
 
 
