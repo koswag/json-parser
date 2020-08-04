@@ -30,4 +30,18 @@ object JsonParser {
             KeywordParser("null")(input)
     }
 
+
+    object JsonBoolParser extends Parser[JsonValue] {
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            (trueParser or falseParser) (input)
+
+        private val trueParser: Parser[JsonValue] =
+            KeywordParser("true")
+
+        private val falseParser: Parser[JsonValue] =
+            KeywordParser("false")
+
+    }
+
 }
