@@ -1,0 +1,45 @@
+{
+  "_id": "5f29d6700367bc2782a7d48b",
+  "index": 4,
+  "guid": "d9987fb2-776a-4e1d-aa6a-327999e31ca6",
+  "isActive": true,
+  "balance": "$2,465.02",
+  "picture": "http://placehold.it/32x32",
+  "age": 37,
+  "eyeColor": "brown",
+  "name": "Juanita Wilder",
+  "gender": "female",
+  "company": "MARKETOID",
+  "email": "juanitawilder@marketoid.com",
+  "phone": "+1 (910) 512-2457",
+  "address": "694 Ivan Court, Tooleville, New Jersey, 6919",
+  "about": "Labore duis minim est velit aute irure. Qui do consectetur officia eiusmod consequat est consectetur do incididunt anim qui anim deserunt. Veniam fugiat aute non culpa. Ullamco cillum nisi id enim fugiat quis officia. Consequat quis fugiat elit ipsum dolore sit nostrud ipsum excepteur. Commodo laborum aute amet culpa proident ut minim. Nulla quis nostrud elit mollit ipsum et enim adipisicing.\r\n",
+  "registered": "2016-04-15T10:16:55 -02:00",
+  "latitude": 40.343254,
+  "longitude": -121.946278,
+  "tags": [
+    "culpa",
+    "ut",
+    "mollit",
+    "dolor",
+    "eiusmod",
+    "reprehenderit",
+    "consequat"
+  ],
+  "friends": [
+    {
+      "id": 0,
+      "name": "Shelia Cochran"
+    },
+    {
+      "id": 1,
+      "name": "Kinney Little"
+    },
+    {
+      "id": 2,
+      "name": "Benjamin Green"
+    }
+  ],
+  "greeting": "Hello, Juanita Wilder! You have 1 unread messages.",
+  "favoriteFruit": "apple"
+}
