@@ -21,8 +21,12 @@ object JsonTypes {
         override type A = Boolean
     }
 
-    case class JsonNumber(value: Int) extends JsonValue { // no Double
+    case class JsonInt(value: Int) extends JsonValue {
         override type A = Int
+    }
+
+    case class JsonDouble(value: Double) extends JsonValue {
+        override type A = Double
     }
 
     case class JsonString(value: String) extends JsonValue {
