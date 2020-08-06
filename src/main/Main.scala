@@ -6,6 +6,7 @@ import parser.JsonTypes.JsonObject
 import scala.io.Source
 import scala.util.{Try, Using}
 
+
 object Main extends App {
 
     def readFile(path: String): Try[String] =
@@ -15,7 +16,7 @@ object Main extends App {
         }
 
 
-    for (contents <- readFile("resources/test.json")) {
+    for (contents <- readFile("resources/short.json")) {
 
         val json: Option[JsonObject] =
             for {
@@ -23,10 +24,6 @@ object Main extends App {
             } yield json.as[JsonObject]
 
         println(json)
-
-//        for (contents <- json) {
-//            contents.getValues foreach println
-//        }
 
     }
 

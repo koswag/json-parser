@@ -2,6 +2,7 @@ package parser
 
 import parser.JsonTypes._
 import parser.Parser._
+import parser.Implicits._
 
 object JsonParser {
 
@@ -14,6 +15,7 @@ object JsonParser {
     private val COMMA = CharParser(',')
     private val QUOTE = CharParser('"')
     private val COLON = CharParser(':')
+    private val DOT = CharParser('.')
 
     private val LEFT_SQ_BRACKET = CharParser('[')
     private val RIGHT_SQ_BRACKET = CharParser(']')
@@ -24,12 +26,18 @@ object JsonParser {
     private val SPACES = SpanParser(_.isWhitespace)
     private val LIST_SEPARATOR = COMMA surroundedBy SPACES
 
-    private val STRING_LITERAL = SpanParser(_ != '"') surroundedBy QUOTE
+    private val STRING = SpanParser(_ != '"') surroundedBy QUOTE
+    private val NUMBER = nonEmpty(SpanParser(_.isDigit))
+    private val FLOAT =
+        NUMBER followedBy
+            DOT followedByMany
+            NUMBER
 
     private val JSON_VALUE = (
         JsonNullParser
             or JsonBoolParser
-            or JsonNumberParser
+            or JsonDoubleParser
+            or JsonIntParser
             or JsonStringParser
             or JsonArrayParser
             or JsonObjectParser
@@ -78,17 +86,27 @@ object JsonParser {
     }
 
 
-    object JsonNumberParser extends Parser[JsonValue] {
-
-        private val numParser =
-            nonEmpty(SpanParser(_.isDigit))
+    object JsonIntParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
-                (rest, token) <- numParser(input)
+                (rest, token) <- NUMBER(input)
             } yield {
                 val number = token.mkString.toInt
-                (rest, JsonNumber(number))
+                (rest, JsonInt(number))
+            }
+
+    }
+
+
+    object JsonDoubleParser extends Parser[JsonValue] {
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, token) <- FLOAT(input)
+            } yield {
+                val number = token.mkString.toDouble
+                (rest, JsonDouble(number))
             }
 
     }
@@ -98,7 +116,7 @@ object JsonParser {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
-                (rest, token) <- STRING_LITERAL(input)
+                (rest, token) <- STRING(input)
             } yield {
                 val str = token.mkString("")
                 (rest, JsonString(str))
@@ -137,7 +155,7 @@ object JsonParser {
 
         val pair: Parser[Pair] =
             extractPair(
-                STRING_LITERAL,
+                STRING,
                 COLON surroundedBy SPACES,
                 JSON_VALUE
             )

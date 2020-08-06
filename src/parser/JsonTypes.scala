@@ -35,27 +35,10 @@ object JsonTypes {
 
     case class JsonArray(value: List[JsonValue]) extends JsonValue {
         override type A = List[JsonValue]
-
-        def getValues: List[Any] =
-            valuesOf(this).asInstanceOf[List[Any]]
     }
 
     case class JsonObject(value: List[(List[Char], JsonValue)]) extends JsonValue {
         override type A = List[(List[Char], JsonValue)]
-
-        def getValues: Map[String, Any] =
-            valuesOf(this).asInstanceOf[Map[String, Any]]
-    }
-
-    def valuesOf(json: JsonValue): Any = json match {
-        case obj: JsonObject =>
-            obj.value.map {
-                case (k, v) =>
-                    k.mkString -> valuesOf(v)
-            }
-        case arr: JsonArray =>
-            arr.value map valuesOf
-        case _ => json.value
     }
 
 }
