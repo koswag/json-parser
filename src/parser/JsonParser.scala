@@ -59,7 +59,8 @@ object JsonParser {
 
     object JsonNullParser extends Parser[JsonValue] {
 
-        private val nullParser = KeywordParser("null" -> JsonNull)
+        private val nullParser: Parser[JsonValue] =
+            KeywordParser("null" -> JsonNull)
 
         override def apply(input: List[Char]): Result[JsonValue] =
             nullParser(input)
