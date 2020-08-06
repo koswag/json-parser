@@ -45,21 +45,13 @@ object JsonParser {
         )
 
 
-    case class KeywordParser(keyword: String) extends Parser[JsonValue] {
-
-        private val keywordMapping: Map[String, JsonValue] = Map(
-            "null" -> JsonNull,
-            "true" -> JsonBool(true),
-            "false" -> JsonBool(false)
-        )
+    case class KeywordParser(mapping: (String, JsonValue)) extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] = {
-            if (keywordMapping contains keyword) {
-                val value = keywordMapping(keyword)
-                for {
-                    (rest, _) <- StringParser(keyword)(input)
-                } yield (rest, value)
-            } else None
+            val (key, value) = mapping
+            for {
+                (rest, _) <- StringParser(key)(input)
+            } yield (rest, value)
         }
 
     }
@@ -68,7 +60,7 @@ object JsonParser {
     object JsonNullParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
-            KeywordParser("null")(input)
+            KeywordParser("null" -> JsonNull)(input)
 
     }
 
@@ -79,10 +71,10 @@ object JsonParser {
             (trueParser or falseParser) (input)
 
         private val trueParser: Parser[JsonValue] =
-            KeywordParser("true")
+            KeywordParser("true" -> JsonBool(true))
 
         private val falseParser: Parser[JsonValue] =
-            KeywordParser("false")
+            KeywordParser("false" -> JsonBool(false))
 
     }
 
