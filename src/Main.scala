@@ -1,5 +1,3 @@
-package main
-
 import parser.JsonParser
 
 import scala.io.Source
