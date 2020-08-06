@@ -16,6 +16,7 @@ object JsonParser {
     private val QUOTE = CharParser('"')
     private val COLON = CharParser(':')
     private val DOT = CharParser('.')
+    private val MINUS = CharParser('-')
 
     private val LEFT_SQ_BRACKET = CharParser('[')
     private val RIGHT_SQ_BRACKET = CharParser(']')
@@ -27,11 +28,10 @@ object JsonParser {
     private val LIST_SEPARATOR = COMMA surroundedBy SPACES
 
     private val STRING = SpanParser(_ != '"') surroundedBy QUOTE
-    private val NUMBER = nonEmpty(SpanParser(_.isDigit))
-    private val FLOAT =
-        NUMBER followedBy
-            DOT followedByMany
-            NUMBER
+
+    private val POS_NUMBER = nonEmpty(SpanParser(_.isDigit))
+    private val NUMBER = optional(MINUS) followedByMany  POS_NUMBER
+    private val FLOAT = NUMBER followedBy DOT followedByMany POS_NUMBER
 
     private val JSON_VALUE = (
         JsonNullParser
@@ -136,9 +136,10 @@ object JsonParser {
             }
 
         val parseElements: Parser[List[JsonValue]] = {
-            val elements = (JSON_VALUE separatedBy LIST_SEPARATOR
-                or Parser.empty)
-            LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
+            val elements =
+                (JSON_VALUE separatedBy LIST_SEPARATOR) or Parser.empty
+
+            LEFT_SQ_BRACKET *> SPACES *> elements <* SPACES <* RIGHT_SQ_BRACKET
         }
 
     }
