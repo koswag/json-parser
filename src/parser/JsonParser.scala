@@ -27,7 +27,8 @@ object JsonParser {
     private val SPACES = SpanParser(_.isWhitespace)
     private val LIST_SEPARATOR = COMMA surroundedBy SPACES
 
-    private val STRING = SpanParser(_ != '"') surroundedBy QUOTE
+    private val TEXT_TIL_QUOTE = SpanParser(_ != '"')
+    private val STRING = TEXT_TIL_QUOTE surroundedBy QUOTE
 
     private val POS_NUMBER = nonEmpty(SpanParser(_.isDigit))
     private val NUMBER = optional(MINUS) followedByMany  POS_NUMBER
