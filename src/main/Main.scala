@@ -1,7 +1,6 @@
 package main
 
 import parser.JsonParser
-import parser.JsonTypes.JsonObject
 
 import scala.io.Source
 import scala.util.{Try, Using}
@@ -16,15 +15,10 @@ object Main extends App {
         }
 
 
-    for (contents <- readFile("resources/short.json")) {
-
-        val json: Option[JsonObject] =
-            for {
-                (_, json) <- JsonParser(contents)
-            } yield json.as[JsonObject]
-
-        println(json)
-
+    for (contents <- readFile("resources/long.json")) {
+        for {
+            (_, json) <- JsonParser(contents)
+        } println(json)
     }
 
 }

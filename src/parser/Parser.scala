@@ -72,6 +72,14 @@ object Parser {
     def empty[A]: Parser[List[A]] =
         input => Some(input, List.empty)
 
+    def optional[A](parser: Parser[A]): Parser[List[A]] =
+        input => parser(input) match {
+            case Some((rest, res)) =>
+                Some(rest, List(res))
+            case None =>
+                empty(input)
+        }
+
 
     case class CharParser(char: Char) extends Parser[Char] {
 
