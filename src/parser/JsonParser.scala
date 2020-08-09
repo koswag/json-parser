@@ -25,10 +25,10 @@ object JsonParser {
     private val RIGHT_BRACE = CharParser('}')
 
     private val SPACES = SpanParser(_.isWhitespace)
-    private val LIST_SEPARATOR = COMMA surroundedBy SPACES
+    private val LIST_SEPARATOR = SPACES *> COMMA <* SPACES
 
     private val TEXT_TIL_QUOTE = SpanParser(_ != '"')
-    private val STRING = TEXT_TIL_QUOTE surroundedBy QUOTE
+    private val STRING = QUOTE *> TEXT_TIL_QUOTE <* QUOTE
 
     private val POS_NUMBER = nonEmpty(SpanParser(_.isDigit))
     private val NUMBER = optional(MINUS) followedByMany  POS_NUMBER
@@ -59,25 +59,25 @@ object JsonParser {
 
     object JsonNullParser extends Parser[JsonValue] {
 
-        private val nullParser: Parser[JsonValue] =
-            KeywordParser("null" -> JsonNull)
-
         override def apply(input: List[Char]): Result[JsonValue] =
             nullParser(input)
+
+        private val nullParser: Parser[JsonValue] =
+            KeywordParser("null" -> JsonNull)
 
     }
 
 
     object JsonBoolParser extends Parser[JsonValue] {
 
+        override def apply(input: List[Char]): Result[JsonValue] =
+            (trueParser or falseParser) (input)
+
         private val trueParser: Parser[JsonValue] =
             KeywordParser("true" -> JsonBool(true))
 
         private val falseParser: Parser[JsonValue] =
             KeywordParser("false" -> JsonBool(false))
-
-        override def apply(input: List[Char]): Result[JsonValue] =
-            (trueParser or falseParser) (input)
 
     }
 
@@ -152,18 +152,18 @@ object JsonParser {
 
         val pair: Parser[Pair] =
             extractPair(
-                STRING,
-                COLON surroundedBy SPACES,
-                JSON_VALUE
+                key = STRING,
+                separator = SPACES *> COLON <* SPACES,
+                value = JSON_VALUE
             )
 
-        def extractPair(keyParser: Parser[List[Char]],
-                        sepParser: Parser[Char],
-                        valParser: Parser[JsonValue]): Parser[Pair] =
+        def extractPair(key: Parser[List[Char]],
+                        separator: Parser[Char],
+                        value: Parser[JsonValue]): Parser[Pair] =
             input => for {
-                (rest, k) <- keyParser(input)
-                (rest_, _) <- sepParser(rest)
-                (rest__, v) <- valParser(rest_)
+                (rest, k) <- key(input)
+                (rest_, _) <- separator(rest)
+                (rest__, v) <- value(rest_)
             } yield (rest__, k -> v)
 
         val parseObject: Parser[List[Pair]] =

@@ -26,9 +26,6 @@ trait Parser[A] extends (List[Char] => Result[A]) {
             else other(input)
         }
 
-    def surroundedBy[B](parser: Parser[B]): Parser[A] =
-        parser *> this <* parser
-
     @tailrec
     final def many(input: List[Char],
                    elements: List[A] = List()): Result[List[A]] =
@@ -39,9 +36,9 @@ trait Parser[A] extends (List[Char] => Result[A]) {
                     many(rest, newElements)
                 else Some(rest, newElements)
             case None =>
-                if (elements.nonEmpty) {
+                if (elements.nonEmpty)
                     Some(input, elements)
-                } else None
+                else None
         }
 
     def separatedBy[B](sep: Parser[B]): Parser[List[A]] =
@@ -65,9 +62,9 @@ object Parser {
 
     def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
         input => for {
-            (input_, xs) <- parser(input)
+            (rest, xs) <- parser(input)
             if xs.nonEmpty
-        } yield (input_, xs)
+        } yield (rest, xs)
 
     def empty[A]: Parser[List[A]] =
         input => Some(input, List.empty)
