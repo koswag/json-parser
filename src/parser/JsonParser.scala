@@ -30,7 +30,8 @@ object JsonParser {
     private val TEXT_TIL_QUOTE = SpanParser(_ != '"')
     private val STRING = QUOTE *> TEXT_TIL_QUOTE <* QUOTE
 
-    private val POS_NUMBER = nonEmpty(SpanParser(_.isDigit))
+    private val DIGITS = SpanParser(_.isDigit)
+    private val POS_NUMBER = nonEmpty(DIGITS)
     private val NUMBER = optional(MINUS) followedByMany  POS_NUMBER
     private val FLOAT = NUMBER followedBy DOT followedByMany POS_NUMBER
 
