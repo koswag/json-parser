@@ -9,6 +9,8 @@ object JsonTypes {
 
         def as[T <: JsonValue]: T =
             this.asInstanceOf[T]
+
+        def get: Any = mapToValue(this)
     }
 
     case object JsonNull extends JsonValue {
@@ -35,10 +37,22 @@ object JsonTypes {
 
     case class JsonArray(value: List[JsonValue]) extends JsonValue {
         override type A = List[JsonValue]
+
+        def getValues: List[Any] = value map mapToValue
     }
 
     case class JsonObject(value: List[(List[Char], JsonValue)]) extends JsonValue {
         override type A = List[(List[Char], JsonValue)]
+
+        def getPairs: Map[String, Any] = value.map({
+            case (key, value_) => (key.mkString, mapToValue(value_))
+        }).toMap
+    }
+
+    def mapToValue(jsonValue: JsonValue): Any = jsonValue match {
+        case obj: JsonObject => obj.getPairs
+        case arr: JsonArray => arr.getValues
+        case other => other.value
     }
 
 }

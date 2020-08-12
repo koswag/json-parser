@@ -1,4 +1,5 @@
 import parser.JsonParser
+import parser.JsonTypes.JsonArray
 
 import scala.io.Source
 import scala.util.{Try, Using}
@@ -14,9 +15,9 @@ object Main extends App {
 
 
     for (contents <- readFile("resources/long.json")) {
-        for {
-            (_, json) <- JsonParser(contents)
-        } println(json)
+        for ((_, json) <- JsonParser(contents)) {
+            json.as[JsonArray].getValues foreach println
+        }
     }
 
 }
