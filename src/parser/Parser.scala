@@ -1,5 +1,6 @@
 package parser
 
+import parser.JsonTypes.{JsonValue, Pair}
 import parser.Parser.Result
 
 import scala.annotation.tailrec
@@ -7,18 +8,38 @@ import scala.annotation.tailrec
 
 trait Parser[A] extends (List[Char] => Result[A]) {
 
+    /**
+     * Creates a parser which applies the other parser if this one succeeds.
+     *
+     * @param other - target parser
+     * @tparam B - target parser result type
+     * @return Combined parser
+     */
     def *>[B](other: Parser[B]): Parser[B] =
         input => for {
             (rest, _) <- apply(input)
             result <- other(rest)
         } yield result
 
+    /**
+     * Resulting parser applies this parser if the other one succeeds.
+     *
+     * @param other Target parser
+     * @tparam B Target parser result type
+     * @return Combined parser
+     */
     def <*[B](other: Parser[B]): Parser[A] =
         input => for {
             (rest, res) <- apply(input)
             (rest_, _) <- other(rest)
         } yield (rest_, res)
 
+    /**
+     * Creates a parser which applies the other parser if this one fails.
+     *
+     * @param other Parser following this one
+     * @return Combined parser
+     */
     def or(other: => Parser[A]): Parser[A] =
         input => {
             val res = apply(input)
@@ -26,6 +47,13 @@ trait Parser[A] extends (List[Char] => Result[A]) {
             else other(input)
         }
 
+    /**
+     * Applies this parser as long as it succeeds and stores results in a list.
+     *
+     * @param input    - Input text as char list
+     * @param elements - Element accumulator
+     * @return List of results
+     */
     @tailrec
     final def many(input: List[Char],
                    elements: List[A] = List()): Result[List[A]] =
@@ -41,6 +69,13 @@ trait Parser[A] extends (List[Char] => Result[A]) {
                 else None
         }
 
+    /**
+     * Resulting parser accepts chain of patterns separated by given pattern.
+     *
+     * @param sep Chain separator parser
+     * @tparam B Separator type
+     * @return Parser producing list of results
+     */
     def separatedBy[B](sep: Parser[B]): Parser[List[A]] =
         input => {
             val parseElement: Parser[A] =
@@ -60,15 +95,24 @@ object Parser {
 
     type Result[A] = Option[(List[Char], A)]
 
+    /**
+     * Asserts that parser's result is not empty, fails otherwise.
+     */
     def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
         input => for {
             (rest, xs) <- parser(input)
             if xs.nonEmpty
         } yield (rest, xs)
 
+    /**
+     * Creates a parser producing an empty list
+     */
     def empty[A]: Parser[List[A]] =
         input => Some(input, List.empty)
 
+    /**
+     * Resulting parser produces an empty list on failure
+     */
     def optional[A](parser: Parser[A]): Parser[List[A]] =
         input => parser(input) match {
             case Some((rest, res)) =>
@@ -78,6 +122,11 @@ object Parser {
         }
 
 
+    /**
+     * Parser accepting given character.
+     *
+     * @param char Character pattern
+     */
     case class CharParser(char: Char) extends Parser[Char] {
 
         override def apply(input: List[Char]): Result[Char] = input match {
@@ -89,6 +138,11 @@ object Parser {
     }
 
 
+    /**
+     * Parser accepting given string of characters.
+     *
+     * @param str String pattern
+     */
     case class StringParser(str: String) extends Parser[List[Char]] {
 
         override def apply(input: List[Char]): Result[List[Char]] =
@@ -109,7 +163,33 @@ object Parser {
 
     }
 
+    /**
+     * Parser accepting a two element pair.
+     *
+     * @param key       Leftmost pair element
+     * @param separator Pair separator
+     * @param value     Rightmost pair element
+     * @return Pair parser
+     */
+    case class PairParser(key: Parser[List[Char]],
+                          separator: Parser[Char],
+                          value: Parser[JsonValue]) extends Parser[Pair] {
 
+        override def apply(input: List[Char]): Result[(List[Char], JsonValue)] =
+            for {
+                (rest, k) <- key(input)
+                (rest_, _) <- separator(rest)
+                (rest__, v) <- value(rest_)
+            } yield (rest__, k -> v)
+
+    }
+
+
+    /**
+     * Parser accepting characters as long as they match given predicate.
+     *
+     * @param pred Character predicate
+     */
     case class SpanParser(pred: Char => Boolean) extends Parser[List[Char]] {
 
         override def apply(input: List[Char]): Result[List[Char]] = {

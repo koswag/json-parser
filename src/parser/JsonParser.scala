@@ -45,7 +45,7 @@ object JsonParser {
         )
 
 
-    case class KeywordParser(mapping: (String, JsonValue)) extends Parser[JsonValue] {
+    private case class KeywordParser(mapping: (String, JsonValue)) extends Parser[JsonValue] {
 
         private val (key, value) = mapping
 
@@ -57,6 +57,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting the <b>null</b> keyword.
+     */
     object JsonNullParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -68,6 +71,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting the boolean values: <b>true</b> and <b>false</b>.
+     */
     object JsonBoolParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -82,6 +88,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting integer numbers.
+     */
     object JsonIntParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -95,6 +104,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting floating point numbers.
+     */
     object JsonDoubleParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -108,6 +120,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting strings in double quotes.
+     */
     object JsonStringParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -121,6 +136,9 @@ object JsonParser {
     }
 
 
+    /**
+     * Parser accepting an array of JSON values.
+     */
     object JsonArrayParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -131,16 +149,18 @@ object JsonParser {
                 (rest, elements)
             }
 
-        val parseElements: Parser[List[JsonValue]] = {
-            val elements =
-                (JSON_VALUE separatedBy ELEMENT_SEPARATOR) or Parser.empty
+        private val elements: Parser[List[JsonValue]] =
+            (JSON_VALUE separatedBy ELEMENT_SEPARATOR) or Parser.empty
 
+        private val parseElements: Parser[List[JsonValue]] =
             LEFT_SQ_BRACKET *> SPACES *> elements <* SPACES <* RIGHT_SQ_BRACKET
-        }
 
     }
 
 
+    /**
+     * Parser accepting a JSON object
+     */
     object JsonObjectParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
@@ -148,21 +168,13 @@ object JsonParser {
                 (rest, pairs) <- parseObject(input)
             } yield (rest, JsonObject(pairs))
 
+
         val pair: Parser[Pair] =
-            extractPair(
+            PairParser(
                 key = STRING,
                 separator = SPACES *> COLON <* SPACES,
                 value = JSON_VALUE
             )
-
-        def extractPair(key: Parser[List[Char]],
-                        separator: Parser[Char],
-                        value: Parser[JsonValue]): Parser[Pair] =
-            input => for {
-                (rest, k) <- key(input)
-                (rest_, _) <- separator(rest)
-                (rest__, v) <- value(rest_)
-            } yield (rest__, k -> v)
 
         val parseObject: Parser[List[Pair]] =
             SPACES *> LEFT_BRACE *> SPACES *>

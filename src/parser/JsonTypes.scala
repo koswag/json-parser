@@ -56,7 +56,7 @@ object JsonTypes {
     /**
      * Maps JSON value to its Scala counterpart.
      *
-     * @return One of types:
+     * @return One of basic Scala types:
      *
      *         Null | Boolean | Int | Double | String | List | Map
      */
