@@ -105,13 +105,13 @@ object Parser {
         } yield (rest, xs)
 
     /**
-     * Creates a parser producing an empty list
+     * Creates a parser producing an empty list.
      */
     def empty[A]: Parser[List[A]] =
         input => Some(input, List.empty)
 
     /**
-     * Resulting parser produces an empty list on failure
+     * Resulting parser produces an empty list on failure.
      */
     def optional[A](parser: Parser[A]): Parser[List[A]] =
         input => parser(input) match {
