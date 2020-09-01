@@ -4,6 +4,7 @@ import parser.JsonTypes.{JsonValue, Pair}
 import parser.Parser.Result
 
 import scala.annotation.tailrec
+import scala.util.{Failure, Success, Try}
 
 
 trait Parser[A] extends (List[Char] => Result[A]) {
@@ -189,13 +190,33 @@ object Parser {
      * Parser accepting characters as long as they match given predicate.
      *
      * @param pred Character predicate
+     * @param escapeChars (Letter -> escape character) mapping
      */
-    case class SpanParser(pred: Char => Boolean) extends Parser[List[Char]] {
+    case class SpanParser(pred: Char => Boolean,
+                          escapeChars: Map[Char, Char] = Map()) extends Parser[List[Char]] {
 
         override def apply(input: List[Char]): Result[List[Char]] = {
             val (token, rest) = input.span(pred)
-            Some(rest, token)
+
+            if (escapeChars.nonEmpty && token.nonEmpty) {
+                replaceEscapeChars(token) match {
+                    case Success(value) => Some(rest, value)
+                    case Failure(_) => None
+                }
+            } else
+                Some(rest, token)
         }
+
+        private def replaceEscapeChars(token: List[Char]): Try[List[Char]] =
+            Try {
+                val first = List(token.head)
+                token.foldLeft(first)((acc, ch) =>
+                    if (acc.last == '\\')
+                        acc.dropRight(1) :+ escapeChars(ch)
+                    else
+                        acc :+ ch
+                )
+            }
 
     }
 

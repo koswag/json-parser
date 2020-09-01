@@ -11,6 +11,16 @@ object JsonParser {
         JSON_VALUE(input_)
     }
 
+    private val escapeChars = Map(
+        'b' -> '\b',
+        'f' -> '\f',
+        'n' -> '\n',
+        'r' -> '\r',
+        't' -> '\t',
+        '"' -> '\"',
+        '\\' -> '\\',
+    )
+
     private val COLON = CharParser(':')
 
     private val LEFT_SQ_BRACKET = CharParser('[')
@@ -24,7 +34,7 @@ object JsonParser {
     private val ELEMENT_SEPARATOR = SPACES *> COMMA <* SPACES
 
     private val QUOTE = CharParser('"')
-    private val TEXT_TIL_QUOTE = SpanParser(_ != '"')
+    private val TEXT_TIL_QUOTE = SpanParser(_ != '"', escapeChars)
     private val STRING = QUOTE *> TEXT_TIL_QUOTE <* QUOTE
 
     private val MINUS = CharParser('-')

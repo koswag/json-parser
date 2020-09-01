@@ -14,9 +14,15 @@ object Main extends App {
         }
 
 
-    for (contents <- readFile("resources/long.json")) {
-        for ((_, json) <- JsonParser(contents)) {
-            json.as[JsonArray].getValues foreach println
+    for (contents <- readFile("resources/test.json")) {
+//        for ((_, json) <- JsonParser(contents)) {
+//            json.as[JsonArray].getValues foreach println
+//        }
+        JsonParser(contents) match {
+            case Some((_, json)) =>
+                json.as[JsonArray].getValues foreach println
+            case None =>
+                println("Parsing failed")
         }
     }
 
