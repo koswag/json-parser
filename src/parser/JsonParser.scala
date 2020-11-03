@@ -177,19 +177,19 @@ object JsonParser {
      */
     object JsonObjectParser extends Parser[JsonValue] {
 
-        private val pair: Parser[Pair] =
+        private val property: Parser[JsonProperty] =
             PairParser(
                 key = STRING,
                 separator = SPACES *> COLON <* SPACES,
                 value = JSON_VALUE
             )
 
-        private val pairs: Parser[List[Pair]] =
-            pair separatedBy ELEMENT_SEPARATOR
+        private val properties: Parser[List[JsonProperty]] =
+            property separatedBy ELEMENT_SEPARATOR
 
-        val parseObject: Parser[List[Pair]] =
+        val parseObject: Parser[List[JsonProperty]] =
             SPACES *> LEFT_BRACE *> SPACES *>
-                (pairs or Parser.empty) <* SPACES <* RIGHT_BRACE <* SPACES
+                (properties or Parser.empty) <* SPACES <* RIGHT_BRACE <* SPACES
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {

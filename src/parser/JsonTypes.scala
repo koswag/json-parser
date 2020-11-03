@@ -1,8 +1,10 @@
 package parser
 
+import java.util.Locale
+
 object JsonTypes {
 
-    type Pair = (List[Char], JsonValue)
+    type JsonProperty = (List[Char], JsonValue)
 
     sealed trait JsonValue {
         type A
@@ -45,8 +47,8 @@ object JsonTypes {
             value.map(mapToValue)
     }
 
-    case class JsonObject(value: List[Pair]) extends JsonValue {
-        override type A = List[Pair]
+    case class JsonObject(value: List[JsonProperty]) extends JsonValue {
+        override type A = List[JsonProperty]
 
         def getPairs: Map[String, Any] = value.map({
             case (key, value_) => (key.mkString, mapToValue(value_))
@@ -65,5 +67,5 @@ object JsonTypes {
         case arr: JsonArray => arr.getValues
         case other => other.value
     }
-
+    
 }

@@ -1,6 +1,5 @@
 package parser
 
-import parser.JsonTypes.{JsonValue, Pair}
 import parser.Parser.Result
 
 import scala.annotation.tailrec
@@ -172,11 +171,11 @@ object Parser {
      * @param value     Rightmost pair element
      * @return Pair parser
      */
-    case class PairParser(key: Parser[List[Char]],
+    case class PairParser[K, V](key: Parser[K],
                           separator: Parser[Char],
-                          value: Parser[JsonValue]) extends Parser[Pair] {
+                          value: Parser[V]) extends Parser[(K, V)] {
 
-        override def apply(input: List[Char]): Result[(List[Char], JsonValue)] =
+        override def apply(input: List[Char]): Result[(K, V)] =
             for {
                 (rest, k) <- key(input)
                 (rest_, _) <- separator(rest)
