@@ -55,25 +55,10 @@ object JsonParser {
         )
 
 
-    private case class KeywordParser(mapping: (String, JsonValue)) extends Parser[JsonValue] {
-
-        private val (key, value) = mapping
-
-        private val parser: StringParser =
-            StringParser(key)
-
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, _) <- parser(input)
-            } yield (rest, value)
-
-    }
-
-
     /**
      * Parser accepting the <b>null</b> keyword.
      */
-    object JsonNullParser extends Parser[JsonValue] {
+    private object JsonNullParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             nullParser(input)
@@ -87,7 +72,7 @@ object JsonParser {
     /**
      * Parser accepting the boolean values: <b>true</b> and <b>false</b>.
      */
-    object JsonBoolParser extends Parser[JsonValue] {
+    private object JsonBoolParser extends Parser[JsonValue] {
 
         private val trueParser: Parser[JsonValue] =
             KeywordParser("true" -> JsonBool(true))
@@ -104,7 +89,7 @@ object JsonParser {
     /**
      * Parser accepting integer numbers.
      */
-    object JsonIntParser extends Parser[JsonValue] {
+    private object JsonIntParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
@@ -120,7 +105,7 @@ object JsonParser {
     /**
      * Parser accepting floating point numbers.
      */
-    object JsonDoubleParser extends Parser[JsonValue] {
+    private object JsonDoubleParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
@@ -136,7 +121,7 @@ object JsonParser {
     /**
      * Parser accepting strings in double quotes.
      */
-    object JsonStringParser extends Parser[JsonValue] {
+    private object JsonStringParser extends Parser[JsonValue] {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
@@ -152,7 +137,7 @@ object JsonParser {
     /**
      * Parser accepting an array of JSON values.
      */
-    object JsonArrayParser extends Parser[JsonValue] {
+    private object JsonArrayParser extends Parser[JsonValue] {
 
         private val elements: Parser[List[JsonValue]] =
             (JSON_VALUE separatedBy ELEMENT_SEPARATOR) or Parser.empty
@@ -175,7 +160,7 @@ object JsonParser {
     /**
      * Parser accepting a JSON object
      */
-    object JsonObjectParser extends Parser[JsonValue] {
+    private object JsonObjectParser extends Parser[JsonValue] {
 
         private val property: Parser[JsonProperty] =
             PairParser(
@@ -195,6 +180,29 @@ object JsonParser {
             for {
                 (rest, pairs) <- parseObject(input)
             } yield (rest, JsonObject(pairs))
+
+    }
+
+
+    private class KeywordParser(key: String, value: JsonValue) extends Parser[JsonValue] {
+
+        private val parser: StringParser =
+            StringParser(key)
+
+        override def apply(input: List[Char]): Result[JsonValue] =
+            for {
+                (rest, _) <- parser(input)
+            } yield (rest, value)
+
+    }
+
+
+    private object KeywordParser {
+
+        def apply(mapping: (String, JsonValue)): KeywordParser = {
+            val (key, value) = mapping
+            new KeywordParser(key, value)
+        }
 
     }
 
