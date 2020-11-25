@@ -3,5 +3,5 @@ Functional JSON file parser written in Scala
 
 
 In future:
-- [ ] Escape characters support
+- [x] Escape characters support
 - [ ] Info about error location
