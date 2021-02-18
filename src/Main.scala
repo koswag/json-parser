@@ -1,5 +1,6 @@
 import parser.JsonParser
 import parser.JsonTypes.JsonArray
+import parser.CheckedConversions._
 
 import scala.io.Source
 import scala.util.{Try, Using}
@@ -13,11 +14,9 @@ object Main extends App {
                 file.getLines().mkString
         }
 
-
-    for (contents <- readFile("resources/test.json")) {
-//        for ((_, json) <- JsonParser(contents)) {
-//            json.as[JsonArray].getValues foreach println
-//        }
+    for (
+        contents <- readFile("resources/long.json")
+    ) {
         JsonParser(contents) match {
             case Some((_, json)) =>
                 json.as[JsonArray].getValues foreach println

@@ -40,9 +40,9 @@ object JsonParser {
     private val MINUS = CharParser('-')
     private val DOT = CharParser('.')
     private val DIGITS = SpanParser(_.isDigit)
-    private val POS_NUMBER = nonEmpty(DIGITS)
-    private val NUMBER = optional(MINUS) followedByMany POS_NUMBER
-    private val FLOAT = NUMBER followedBy DOT followedByMany POS_NUMBER
+    private val NUMBER = nonEmpty(DIGITS)
+    private val INTEGER = optional(MINUS) followedByMany NUMBER
+    private val FLOAT = INTEGER followedBy DOT followedByMany NUMBER
 
     private val JSON_VALUE = (
         JsonNullParser
@@ -70,7 +70,7 @@ object JsonParser {
 
 
     /**
-     * Parser accepting the boolean values: <b>true</b> and <b>false</b>.
+     * Parser accepting boolean values: <b>true</b> and <b>false</b>.
      */
     private object JsonBoolParser extends Parser[JsonValue] {
 
@@ -80,8 +80,12 @@ object JsonParser {
         private val falseParser: Parser[JsonValue] =
             KeywordParser("false" -> JsonBool(false))
 
+        private val boolParser: Parser[JsonValue] =
+            trueParser or falseParser
+
+
         override def apply(input: List[Char]): Result[JsonValue] =
-            (trueParser or falseParser) (input)
+            boolParser(input)
 
     }
 
@@ -93,7 +97,7 @@ object JsonParser {
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
-                (rest, token) <- NUMBER(input)
+                (rest, token) <- INTEGER(input)
             } yield {
                 val number = token.mkString.toInt
                 (rest, JsonInt(number))

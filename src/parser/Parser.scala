@@ -11,8 +11,8 @@ trait Parser[A] extends (List[Char] => Result[A]) {
     /**
      * Creates a parser which applies the other parser if this one succeeds.
      *
-     * @param other - target parser
-     * @tparam B - target parser result type
+     * @param other - Target parser
+     * @tparam B - Target parser's result type
      * @return Combined parser
      */
     def *>[B](other: Parser[B]): Parser[B] =
@@ -24,8 +24,8 @@ trait Parser[A] extends (List[Char] => Result[A]) {
     /**
      * Resulting parser applies this parser if the other one succeeds.
      *
-     * @param other Target parser
-     * @tparam B Target parser result type
+     * @param other Some other parser
+     * @tparam B Other parser's result type
      * @return Combined parser
      */
     def <*[B](other: Parser[B]): Parser[A] =
@@ -54,9 +54,8 @@ trait Parser[A] extends (List[Char] => Result[A]) {
      * @param elements - Element accumulator
      * @return List of results
      */
-    @tailrec
-    final def many(input: List[Char],
-                   elements: List[A] = List()): Result[List[A]] =
+    @tailrec final def many(input: List[Char],
+                            elements: List[A] = List()): Result[List[A]] =
         apply(input) match {
             case Some((rest, element)) =>
                 val newElements = elements :+ element
@@ -96,7 +95,7 @@ object Parser {
     type Result[A] = Option[(List[Char], A)]
 
     /**
-     * Asserts that parser's result is not empty, fails otherwise.
+     * Asserts that parser's result is a non empty list, fails otherwise.
      */
     def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
         input => for {
@@ -172,8 +171,8 @@ object Parser {
      * @return Pair parser
      */
     case class PairParser[K, V](key: Parser[K],
-                          separator: Parser[Char],
-                          value: Parser[V]) extends Parser[(K, V)] {
+                                separator: Parser[Char],
+                                value: Parser[V]) extends Parser[(K, V)] {
 
         override def apply(input: List[Char]): Result[(K, V)] =
             for {
@@ -188,8 +187,10 @@ object Parser {
     /**
      * Parser accepting characters as long as they match given predicate.
      *
-     * @param pred Character predicate
-     * @param escapeChars (Letter -> escape character) mapping
+     * Escape char mapping should contain pairs (letter -> escapeChar) e.g. ('n' -> '\n')
+     *
+     * @param pred        Character predicate
+     * @param escapeChars Escape character mapping
      */
     case class SpanParser(pred: Char => Boolean,
                           escapeChars: Map[Char, Char] = Map()) extends Parser[List[Char]] {
