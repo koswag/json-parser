@@ -1,6 +1,7 @@
-package parser
+package conversion
 
-import parser.JsonTypes._
+import typing.JsonSerializable
+import typing.JsonTypes._
 
 object CheckedConversions {
 

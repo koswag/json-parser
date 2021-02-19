@@ -1,4 +1,4 @@
-package parser
+package typing
 
 sealed trait JsonSerializable[-A]
 

@@ -1,11 +1,11 @@
-package parser
+package typing
 
 object JsonTypes {
 
     type JsonProperty = (List[Char], JsonValue)
 
     sealed trait JsonValue {
-        type A
+        type A <: JsonSerializable[_]
 
         def value: A
 
@@ -66,5 +66,5 @@ object JsonTypes {
         case arr: JsonArray => arr.getValues
         case other => other.value
     }
-    
+
 }

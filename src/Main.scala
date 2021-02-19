@@ -1,6 +1,6 @@
 import parser.JsonParser
-import parser.JsonTypes.JsonArray
-import parser.CheckedConversions._
+import typing.JsonTypes.JsonArray
+import conversion.CheckedConversions._
 
 import scala.io.Source
 import scala.util.{Try, Using}

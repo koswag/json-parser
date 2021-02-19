@@ -1,6 +1,6 @@
-package parser
+package conversion
 
-import parser.JsonTypes.{JsonArray, JsonBool, JsonDouble, JsonInt, JsonNull, JsonObject, JsonProperty, JsonString, JsonValue}
+import typing.JsonTypes._
 
 object UncheckedConversions {
 

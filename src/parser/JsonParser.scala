@@ -1,7 +1,7 @@
 package parser
 
 import parser.Implicits._
-import parser.JsonTypes._
+import typing.JsonTypes._
 import parser.Parser._
 
 object JsonParser {
