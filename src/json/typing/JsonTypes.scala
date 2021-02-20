@@ -1,11 +1,11 @@
-package typing
+package json.typing
 
 object JsonTypes {
 
     type JsonProperty = (List[Char], JsonValue)
 
     sealed trait JsonValue {
-        type A <: JsonSerializable[_]
+        type A
 
         def value: A
 
@@ -14,6 +14,8 @@ object JsonTypes {
 
         def get: Any =
             toScalaValue(this)
+
+        def serialize: String = value.toString
     }
 
     case object JsonNull extends JsonValue {
@@ -36,6 +38,8 @@ object JsonTypes {
 
     case class JsonString(value: String) extends JsonValue {
         override type A = String
+
+        override def serialize: String = s""""$value""""
     }
 
     case class JsonArray(value: List[JsonValue]) extends JsonValue {
@@ -43,6 +47,12 @@ object JsonTypes {
 
         def getValues: List[Any] =
             value map toScalaValue
+
+        override def serialize: String =
+            s"[${
+                value.map(_.serialize)
+                    .mkString(", ")
+            }]"
     }
 
     case class JsonObject(value: List[JsonProperty]) extends JsonValue {
@@ -52,6 +62,14 @@ object JsonTypes {
             case (key, value_) =>
                 (key.mkString, toScalaValue(value_))
         }).toMap
+
+        override def serialize: String =
+            s"{${
+                value.map {
+                    case (key, value) =>
+                        s""""${key.mkString}": ${value.serialize}"""
+                }.mkString(", ")
+            }}"
     }
 
     /**

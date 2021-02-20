@@ -1,10 +1,10 @@
-import parser.JsonParser
-import typing.JsonTypes.JsonArray
-import conversion.CheckedConversions._
+package json
+
+import json.parser.JsonParser
+import json.typing.JsonTypes.JsonArray
 
 import scala.io.Source
 import scala.util.{Try, Using}
-
 
 object Main extends App {
 

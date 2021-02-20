@@ -1,7 +1,7 @@
-package conversion
+package json.conversion
 
-import typing.JsonSerializable
-import typing.JsonTypes._
+import json.typing.JsonSerializable
+import json.typing.JsonTypes._
 
 object CheckedConversions {
 

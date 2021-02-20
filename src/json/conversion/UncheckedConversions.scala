@@ -1,6 +1,6 @@
-package conversion
+package json.conversion
 
-import typing.JsonTypes._
+import json.typing.JsonTypes._
 
 object UncheckedConversions {
 

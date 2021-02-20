@@ -1,8 +1,8 @@
-package parser
+package json.parser
 
-import parser.Implicits._
-import typing.JsonTypes._
-import parser.Parser._
+import json.parser.Implicits._
+import json.typing.JsonTypes._
+import json.parser.Parser._
 
 object JsonParser {
 

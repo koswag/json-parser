@@ -1,6 +1,6 @@
-package parser
+package json.parser
 
-import parser.Parser.Result
+import json.parser.Parser.Result
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -9,11 +9,11 @@ import scala.util.{Failure, Success, Try}
 trait Parser[A] extends (List[Char] => Result[A]) {
 
     /**
-     * Creates a parser which applies the other parser if this one succeeds.
+     * Creates a src.parser which applies the other src.parser if this one succeeds.
      *
-     * @param other - Target parser
-     * @tparam B - Target parser's result type
-     * @return Combined parser
+     * @param other - Target src.parser
+     * @tparam B - Target src.parser's result type
+     * @return Combined src.parser
      */
     def *>[B](other: Parser[B]): Parser[B] =
         input => for {
@@ -22,11 +22,11 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         } yield result
 
     /**
-     * Resulting parser applies this parser if the other one succeeds.
+     * Resulting src.parser applies this src.parser if the other one succeeds.
      *
-     * @param other Some other parser
-     * @tparam B Other parser's result type
-     * @return Combined parser
+     * @param other Some other src.parser
+     * @tparam B Other src.parser's result type
+     * @return Combined src.parser
      */
     def <*[B](other: Parser[B]): Parser[A] =
         input => for {
@@ -35,10 +35,10 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         } yield (rest_, res)
 
     /**
-     * Creates a parser which applies the other parser if this one fails.
+     * Creates a src.parser which applies the other src.parser if this one fails.
      *
      * @param other Parser following this one
-     * @return Combined parser
+     * @return Combined src.parser
      */
     def or(other: => Parser[A]): Parser[A] =
         input => {
@@ -48,7 +48,7 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         }
 
     /**
-     * Applies this parser as long as it succeeds and stores results in a list.
+     * Applies this src.parser as long as it succeeds and stores results in a list.
      *
      * @param input    - Input text as char list
      * @param elements - Element accumulator
@@ -69,9 +69,9 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         }
 
     /**
-     * Resulting parser accepts chain of patterns separated by given pattern.
+     * Resulting src.parser accepts chain of patterns separated by given pattern.
      *
-     * @param sep Chain separator parser
+     * @param sep Chain separator src.parser
      * @tparam B Separator type
      * @return Parser producing list of results
      */
@@ -95,7 +95,7 @@ object Parser {
     type Result[A] = Option[(List[Char], A)]
 
     /**
-     * Asserts that parser's result is a non empty list, fails otherwise.
+     * Asserts that src.parser's result is a non empty list, fails otherwise.
      */
     def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
         input => for {
@@ -104,13 +104,13 @@ object Parser {
         } yield (rest, xs)
 
     /**
-     * Creates a parser producing an empty list.
+     * Creates a src.parser producing an empty list.
      */
     def empty[A]: Parser[List[A]] =
         input => Some(input, List.empty)
 
     /**
-     * Resulting parser produces an empty list on failure.
+     * Resulting src.parser produces an empty list on failure.
      */
     def optional[A](parser: Parser[A]): Parser[List[A]] =
         input => parser(input) match {
@@ -128,11 +128,12 @@ object Parser {
      */
     case class CharParser(char: Char) extends Parser[Char] {
 
-        override def apply(input: List[Char]): Result[Char] = input match {
-            case x :: xs
-                if x == char => Some(xs, char)
-            case _ => None
-        }
+        override def apply(input: List[Char]): Result[Char] =
+            input match {
+                case x :: xs
+                    if x == char => Some(xs, char)
+                case _ => None
+            }
 
     }
 
@@ -168,7 +169,7 @@ object Parser {
      * @param key       Leftmost pair element
      * @param separator Pair separator
      * @param value     Rightmost pair element
-     * @return Pair parser
+     * @return Pair src.parser
      */
     case class PairParser[K, V](key: Parser[K],
                                 separator: Parser[Char],
@@ -209,13 +210,14 @@ object Parser {
 
         private def replaceEscapeChars(token: List[Char]): Try[List[Char]] =
             Try {
-                val first = List(token.head)
-                token.foldLeft(first)((acc, ch) =>
+                token.foldLeft(
+                    List(token.head)
+                ) { (acc, ch) =>
                     if (acc.last == '\\')
                         acc.dropRight(1) :+ escapeChars(ch)
                     else
                         acc :+ ch
-                )
+                }
             }
 
     }

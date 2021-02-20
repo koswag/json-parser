@@ -1,4 +1,4 @@
-package typing
+package json.typing
 
 sealed trait JsonSerializable[-A]
 
