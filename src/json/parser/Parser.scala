@@ -95,7 +95,15 @@ trait Parser[A] extends (List[Char] => Result[A]) {
 
 object Parser {
 
-    type Result[A] = Option[(List[Char], A)]
+    type Position = (Int, Int)
+
+    type Input = (List[Char], Position)
+
+    type Parsed[A] = (List[Char], A)
+    type Result[A] = Option[Parsed[A]]
+
+    type Output[A] = (Result[A], Position)
+
 
     /**
      * Asserts that parser's result is a non empty list, fails otherwise.
