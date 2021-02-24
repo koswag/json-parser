@@ -21,17 +21,22 @@ object JsonParser {
         '\\' -> '\\',
     )
 
-    private val COLON = CharParser(':')
-
-    private val LEFT_SQ_BRACKET = CharParser('[')
-    private val RIGHT_SQ_BRACKET = CharParser(']')
-
-    private val LEFT_BRACE = CharParser('{')
-    private val RIGHT_BRACE = CharParser('}')
-
-    private val COMMA = CharParser(',')
     private val SPACES = SpanParser(_.isWhitespace)
-    private val ELEMENT_SEPARATOR = SPACES *> COMMA <* SPACES
+
+    private implicit class ParserExtension[A](value: Parser[A]) {
+        def withSpaces: Parser[A] =
+            SPACES *> value <* SPACES
+    }
+
+    private val COLON = CharParser(':').withSpaces
+
+    private val LEFT_SQ_BRACKET = CharParser('[').withSpaces
+    private val RIGHT_SQ_BRACKET = CharParser(']').withSpaces
+
+    private val LEFT_BRACE = CharParser('{').withSpaces
+    private val RIGHT_BRACE = CharParser('}').withSpaces
+
+    private val COMMA = CharParser(',').withSpaces
 
     private val QUOTE = CharParser('"')
     private val TEXT_TIL_QUOTE = SpanParser(_ != '"', escapeChars)
@@ -144,19 +149,15 @@ object JsonParser {
     private object JsonArrayParser extends Parser[JsonValue] {
 
         private val elements: Parser[List[JsonValue]] =
-            (JSON_VALUE separatedBy ELEMENT_SEPARATOR) or Parser.empty
+            (JSON_VALUE separatedBy COMMA) or Parser.unit
 
         private val parseElements: Parser[List[JsonValue]] =
-            SPACES *> LEFT_SQ_BRACKET *> SPACES *>
-                elements <* SPACES <* RIGHT_SQ_BRACKET <* SPACES
+            LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {
                 (rest, tokens) <- parseElements(input)
-            } yield {
-                val elements = JsonArray(tokens)
-                (rest, elements)
-            }
+            } yield (rest, JsonArray(tokens))
 
     }
 
@@ -169,16 +170,15 @@ object JsonParser {
         private val property: Parser[JsonProperty] =
             PairParser(
                 key = STRING,
-                separator = SPACES *> COLON <* SPACES,
+                separator = COLON,
                 value = JSON_VALUE
             )
 
         private val properties: Parser[List[JsonProperty]] =
-            property separatedBy ELEMENT_SEPARATOR
+            property separatedBy COMMA
 
         val parseObject: Parser[List[JsonProperty]] =
-            SPACES *> LEFT_BRACE *> SPACES *>
-                (properties or Parser.empty) <* SPACES <* RIGHT_BRACE <* SPACES
+            LEFT_BRACE *> (properties or Parser.unit) <* RIGHT_BRACE
 
         override def apply(input: List[Char]): Result[JsonValue] =
             for {

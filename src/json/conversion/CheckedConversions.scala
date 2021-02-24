@@ -5,10 +5,10 @@ import json.typing.JsonTypes._
 
 object CheckedConversions {
 
-    implicit class JsonSerializableExtension[A: JsonSerializable](val self: A) {
+    implicit class JsonSerializableExtension[A: JsonSerializable](val value: A) {
 
         def asJsonValue: JsonValue =
-            self match {
+            value match {
                 case null => JsonNull
                 case bool: Boolean => JsonBool(bool)
                 case int: Int => JsonInt(int)
@@ -21,32 +21,32 @@ object CheckedConversions {
     }
 
 
-    implicit class JsonSerializableListExtension[T: JsonSerializable](val self: List[T]) {
+    implicit class JsonSerializableListExtension[T: JsonSerializable](val value: List[T]) {
 
         def asJson: JsonArray =
-            JsonArray(self.toJsonValues)
+            JsonArray(value.toJsonValues)
 
         def toJsonValues: List[JsonValue] =
-            self.map(_.asJsonValue)
+            value.map(_.asJsonValue)
 
     }
 
 
-    implicit class MapExtension[T: JsonSerializable](val self: Map[String, T]) {
+    implicit class MapExtension[T: JsonSerializable](val value: Map[String, T]) {
 
         def asJson: JsonObject =
-            JsonObject(self.toJsonProperties)
+            JsonObject(value.toJsonProperties)
 
         def toJsonProperties: List[JsonProperty] =
-            self.toList.map(_.toJsonProperty)
+            value.toList.map(_.toJsonProperty)
 
     }
 
 
-    implicit class JsonPropertyExtension[T: JsonSerializable](val self: (String, T)) {
+    implicit class JsonPropertyExtension[T: JsonSerializable](val value: (String, T)) {
 
         def toJsonProperty: JsonProperty =
-            self match {
+            value match {
                 case (key, value) =>
                     (key.toList, value.asJsonValue)
             }

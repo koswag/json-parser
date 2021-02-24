@@ -9,11 +9,11 @@ import scala.util.{Failure, Success, Try}
 trait Parser[A] extends (List[Char] => Result[A]) {
 
     /**
-     * Creates a src.parser which applies the other src.parser if this one succeeds.
+     * Creates a parser which applies the other parser if this one succeeds.
      *
-     * @param other - Target src.parser
-     * @tparam B - Target src.parser's result type
-     * @return Combined src.parser
+     * @param other - Target parser
+     * @tparam B - Target parser's result type
+     * @return Combined parser
      */
     def *>[B](other: Parser[B]): Parser[B] =
         input => for {
@@ -22,11 +22,11 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         } yield result
 
     /**
-     * Resulting src.parser applies this src.parser if the other one succeeds.
+     * Resulting parser applies this parser if the other one succeeds.
      *
-     * @param other Some other src.parser
-     * @tparam B Other src.parser's result type
-     * @return Combined src.parser
+     * @param other Some other parser
+     * @tparam B Other parser's result type
+     * @return Combined parser
      */
     def <*[B](other: Parser[B]): Parser[A] =
         input => for {
@@ -35,10 +35,10 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         } yield (rest_, res)
 
     /**
-     * Creates a src.parser which applies the other src.parser if this one fails.
+     * Creates a parser which applies the other parser if this one fails.
      *
      * @param other Parser following this one
-     * @return Combined src.parser
+     * @return Combined parser
      */
     def or(other: => Parser[A]): Parser[A] =
         input => {
@@ -48,7 +48,7 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         }
 
     /**
-     * Applies this src.parser as long as it succeeds and stores results in a list.
+     * Applies this parser as long as it succeeds and stores results in a list.
      *
      * @param input    - Input text as char list
      * @param elements - Element accumulator
@@ -69,9 +69,9 @@ trait Parser[A] extends (List[Char] => Result[A]) {
         }
 
     /**
-     * Resulting src.parser accepts chain of patterns separated by given pattern.
+     * Resulting parser accepts chain of patterns separated by given pattern.
      *
-     * @param sep Chain separator src.parser
+     * @param sep Chain separator parser
      * @tparam B Separator type
      * @return Parser producing list of results
      */
@@ -87,6 +87,9 @@ trait Parser[A] extends (List[Char] => Result[A]) {
             }
         }
 
+    def surroundedBy[B](other: Parser[B]): Parser[A] =
+        other *> this <* other
+
 }
 
 
@@ -95,7 +98,7 @@ object Parser {
     type Result[A] = Option[(List[Char], A)]
 
     /**
-     * Asserts that src.parser's result is a non empty list, fails otherwise.
+     * Asserts that parser's result is a non empty list, fails otherwise.
      */
     def nonEmpty[A](parser: Parser[List[A]]): Parser[List[A]] =
         input => for {
@@ -103,21 +106,23 @@ object Parser {
             if xs.nonEmpty
         } yield (rest, xs)
 
-    /**
-     * Creates a src.parser producing an empty list.
-     */
-    def empty[A]: Parser[List[A]] =
-        input => Some(input, List.empty)
 
     /**
-     * Resulting src.parser produces an empty list on failure.
+     * Creates a parser producing an empty list.
+     */
+    def unit[A]: Parser[List[A]] =
+        input => Some(input, List.empty)
+
+
+    /**
+     * Resulting parser produces an empty list on failure.
      */
     def optional[A](parser: Parser[A]): Parser[List[A]] =
         input => parser(input) match {
             case Some((rest, res)) =>
                 Some(rest, List(res))
             case None =>
-                empty(input)
+                unit(input)
         }
 
 
@@ -169,7 +174,7 @@ object Parser {
      * @param key       Leftmost pair element
      * @param separator Pair separator
      * @param value     Rightmost pair element
-     * @return Pair src.parser
+     * @return Pair parser
      */
     case class PairParser[K, V](key: Parser[K],
                                 separator: Parser[Char],
