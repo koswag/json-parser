@@ -3,12 +3,13 @@ package json.parser
 import json.parser.Implicits._
 import json.typing.JsonTypes._
 import json.parser.Parser._
+import json.typing.ParserTypes._
 
 object JsonParser {
 
-    def apply(input: String): Result[JsonValue] = {
+    def apply(input: String): Output[JsonValue] = {
         val input_ = input.toList
-        JSON_VALUE(input_)
+        JSON_VALUE((input_, (1, 1)))
     }
 
     private val escapeChars = Map(
@@ -65,7 +66,7 @@ object JsonParser {
      */
     private object JsonNullParser extends Parser[JsonValue] {
 
-        override def apply(input: List[Char]): Result[JsonValue] =
+        override def apply(input: Input): Output[JsonValue] =
             nullParser(input)
 
         private val nullParser: Parser[JsonValue] =
@@ -89,7 +90,7 @@ object JsonParser {
             trueParser or falseParser
 
 
-        override def apply(input: List[Char]): Result[JsonValue] =
+        override def apply(input: Input): Output[JsonValue] =
             boolParser(input)
 
     }
@@ -100,12 +101,11 @@ object JsonParser {
      */
     private object JsonIntParser extends Parser[JsonValue] {
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, token) <- INTEGER(input)
-            } yield {
-                val number = token.mkString.toInt
-                (rest, JsonInt(number))
+        override def apply(input: Input): Output[JsonValue] =
+            INTEGER(input) mapValue {
+                token =>
+                    val number = token.mkString.toInt
+                    JsonInt(number)
             }
 
     }
@@ -116,13 +116,11 @@ object JsonParser {
      */
     private object JsonDoubleParser extends Parser[JsonValue] {
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, token) <- FLOAT(input)
-            } yield {
-                val number = token.mkString.toDouble
-                (rest, JsonDouble(number))
-            }
+        override def apply(input: Input): Output[JsonValue] = {
+            FLOAT(input)
+                .mapValue(_.mkString("").toDouble)
+                .mapValue(JsonDouble)
+        }
 
     }
 
@@ -132,13 +130,10 @@ object JsonParser {
      */
     private object JsonStringParser extends Parser[JsonValue] {
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, token) <- STRING(input)
-            } yield {
-                val str = token.mkString("")
-                (rest, JsonString(str))
-            }
+        override def apply(input: Input): Output[JsonValue] =
+            STRING(input)
+                .mapValue(_.mkString(""))
+                .mapValue(JsonString)
 
     }
 
@@ -154,10 +149,8 @@ object JsonParser {
         private val parseElements: Parser[List[JsonValue]] =
             LEFT_SQ_BRACKET *> elements <* RIGHT_SQ_BRACKET
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, tokens) <- parseElements(input)
-            } yield (rest, JsonArray(tokens))
+        override def apply(input: Input): Output[JsonValue] =
+            parseElements(input) mapValue JsonArray
 
     }
 
@@ -180,10 +173,8 @@ object JsonParser {
         val parseObject: Parser[List[JsonProperty]] =
             LEFT_BRACE *> (properties or Parser.unit) <* RIGHT_BRACE
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, pairs) <- parseObject(input)
-            } yield (rest, JsonObject(pairs))
+        override def apply(input: Input): Output[JsonValue] =
+            parseObject(input) mapValue JsonObject
 
     }
 
@@ -193,10 +184,8 @@ object JsonParser {
         private val parser: StringParser =
             StringParser(key)
 
-        override def apply(input: List[Char]): Result[JsonValue] =
-            for {
-                (rest, _) <- parser(input)
-            } yield (rest, value)
+        override def apply(input: Input): Output[JsonValue] =
+            parser(input) mapValue (_ => value)
 
     }
 
