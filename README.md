@@ -1,5 +1,5 @@
 # Scala JSON file src.parser
-Functional JSON file src.parser written in Scala
+Functional JSON file parser written in Scala
 
 
 In future:
